@@ -3,20 +3,15 @@ import json
 import re
 import time
 import logging
-import base64
 import urllib.request
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# Detectar que proveedor usar
-if GROQ_API_KEY:
-    AI_PROVIDER = "groq"
-elif GEMINI_API_KEY:
-    AI_PROVIDER = "gemini"
-else:
+if not GROQ_API_KEY and not GEMINI_API_KEY:
     raise RuntimeError("Necesitas GROQ_API_KEY o GEMINI_API_KEY en las variables de entorno")
 
 PROMPT_ANALIZAR = """Eres un asistente escolar. Analiza esta foto de un cuaderno o pizarra de clase.
@@ -68,8 +63,13 @@ def _llamar_groq(image_b64):
             "Authorization": f"Bearer {GROQ_API_KEY}",
         },
     )
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        result = json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        logger.error(f"Groq error {e.code}: {body}")
+        raise RuntimeError(f"Groq API error {e.code}: {body}")
 
     return result["choices"][0]["message"]["content"]
 
@@ -93,26 +93,36 @@ def _llamar_gemini(image_b64):
 
 
 def analizar_imagen(image_b64, max_retries=3):
-    """Analiza una imagen de cuaderno/pizarra y extrae el contenido estructurado."""
-    logger.info(f"Usando proveedor de IA: {AI_PROVIDER}")
+    """Analiza una imagen. Intenta Groq primero, si falla usa Gemini como fallback."""
+    proveedores = []
+    if GROQ_API_KEY:
+        proveedores.append(("groq", _llamar_groq))
+    if GEMINI_API_KEY:
+        proveedores.append(("gemini", _llamar_gemini))
 
-    for intento in range(max_retries):
-        try:
-            if AI_PROVIDER == "groq":
-                texto = _llamar_groq(image_b64)
-            else:
-                texto = _llamar_gemini(image_b64)
+    last_error = None
 
-            texto = texto.strip()
-            texto = re.sub(r"^```json\s*", "", texto)
-            texto = re.sub(r"\s*```$", "", texto)
+    for nombre, llamar_fn in proveedores:
+        for intento in range(max_retries):
+            try:
+                logger.info(f"Intentando con {nombre} (intento {intento + 1})")
+                texto = llamar_fn(image_b64)
 
-            return json.loads(texto)
+                texto = texto.strip()
+                texto = re.sub(r"^```json\s*", "", texto)
+                texto = re.sub(r"\s*```$", "", texto)
 
-        except Exception as e:
-            if ("429" in str(e) or "rate" in str(e).lower()) and intento < max_retries - 1:
-                wait = (intento + 1) * 30
-                logger.warning(f"Rate limit, reintentando en {wait}s (intento {intento + 1}/{max_retries})")
-                time.sleep(wait)
-            else:
-                raise
+                return json.loads(texto)
+
+            except Exception as e:
+                last_error = e
+                error_str = str(e)
+                if ("429" in error_str or "rate" in error_str.lower()) and intento < max_retries - 1:
+                    wait = (intento + 1) * 30
+                    logger.warning(f"{nombre}: rate limit, reintentando en {wait}s")
+                    time.sleep(wait)
+                else:
+                    logger.warning(f"{nombre} fallo: {error_str}")
+                    break  # Salir del retry loop, probar siguiente proveedor
+
+    raise last_error
