@@ -8,7 +8,7 @@ from google import genai
 logger = logging.getLogger(__name__)
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-MODEL = "gemini-2.0-flash-lite"
+MODEL = "gemini-2.5-flash-lite"
 
 PROMPT_ANALIZAR = """Eres un asistente escolar. Analiza esta foto de un cuaderno o pizarra de clase.
 
