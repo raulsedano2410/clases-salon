@@ -1,10 +1,14 @@
 import os
 import json
 import re
+import time
+import logging
 from google import genai
 
+logger = logging.getLogger(__name__)
+
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-2.0-flash-lite"
 
 PROMPT_ANALIZAR = """Eres un asistente escolar. Analiza esta foto de un cuaderno o pizarra de clase.
 
@@ -25,23 +29,33 @@ IMPORTANTE:
 """
 
 
-def analizar_imagen(image_bytes):
+def analizar_imagen(image_bytes, max_retries=3):
     """Analiza una imagen de cuaderno/pizarra y extrae el contenido estructurado."""
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=[
-            {
-                "parts": [
-                    {"text": PROMPT_ANALIZAR},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": image_bytes}},
-                ]
-            }
-        ],
-    )
+    for intento in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=[
+                    {
+                        "parts": [
+                            {"text": PROMPT_ANALIZAR},
+                            {"inline_data": {"mime_type": "image/jpeg", "data": image_bytes}},
+                        ]
+                    }
+                ],
+            )
 
-    texto = response.text.strip()
-    # Limpiar bloques de codigo markdown si los hay
-    texto = re.sub(r"^```json\s*", "", texto)
-    texto = re.sub(r"\s*```$", "", texto)
+            texto = response.text.strip()
+            # Limpiar bloques de codigo markdown si los hay
+            texto = re.sub(r"^```json\s*", "", texto)
+            texto = re.sub(r"\s*```$", "", texto)
 
-    return json.loads(texto)
+            return json.loads(texto)
+
+        except Exception as e:
+            if "429" in str(e) and intento < max_retries - 1:
+                wait = (intento + 1) * 30
+                logger.warning(f"Rate limit alcanzado, reintentando en {wait}s (intento {intento + 1}/{max_retries})")
+                time.sleep(wait)
+            else:
+                raise
