@@ -1,0 +1,17 @@
+{
+    "workbench.colorCustomizations": {
+        "titleBar.activeForeground": "#E6B2FF",
+        "titleBar.activeBackground": "#260038",
+        "titleBar.inactiveForeground": "#DE97FF",
+        "titleBar.inactiveBackground": "#310047",
+        "statusBar.noFolderForeground": "#F3FBFE",
+        "statusBar.noFolderBackground": "#053241",
+        "editor.lineHighlightBackground": "#1073cf2d",
+        "editor.lineHighlightBorder": "#9fced11f",
+        "activityBar.background": "#053241",
+        "statusBar.background": "#053241",
+        "statusBar.foreground": "#F3FBFE",
+        "statusBar.debuggingBackground": "#053241",
+        "statusBar.debuggingForeground": "#F3FBFE"
+    }
+}
