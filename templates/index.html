@@ -7,233 +7,405 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        :root {
+            --lenguaje: #FF6B6B;
+            --matematicas: #4ECDC4;
+            --cta: #45B7D1;
+            --ingles: #96CEB4;
+            --historia: #DFB800;
+            --quimica: #A29BFE;
+            --efisica: #FD79A8;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            background: #0f0f1a;
+            color: #e0e0e0;
             min-height: 100vh;
         }
 
+        /* ─── Header ─── */
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
+            background: #1a1a2e;
+            padding: 1.2rem 1rem 0.8rem;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #2a2a3e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        header h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
-        header p { font-size: 0.9rem; opacity: 0.9; }
+        .app-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
 
+        .fecha-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .fecha-btn {
+            background: #2a2a3e;
+            border: none;
+            color: #aaa;
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .fecha-btn:hover { background: #3a3a4e; color: white; }
+
+        .fecha-actual {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .fecha-hoy-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 8px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* ─── Materias pills ─── */
+        .materias {
+            display: flex;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding: 0 0.5rem 0.5rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .materias::-webkit-scrollbar { display: none; }
+
+        .materia-pill {
+            border: 2px solid;
+            background: transparent;
+            color: #888;
+            padding: 0.4rem 0.8rem;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .materia-pill.tiene-contenido {
+            color: white;
+            opacity: 1;
+        }
+
+        .materia-pill.activo {
+            color: white !important;
+            opacity: 1;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        .materia-pill:not(.tiene-contenido) {
+            opacity: 0.4;
+            border-style: dashed;
+        }
+
+        /* Colores por materia */
+        .pill-Lenguaje { border-color: var(--lenguaje); }
+        .pill-Lenguaje.activo, .pill-Lenguaje.tiene-contenido { background: var(--lenguaje); }
+        .pill-Matematicas { border-color: var(--matematicas); }
+        .pill-Matematicas.activo, .pill-Matematicas.tiene-contenido { background: var(--matematicas); color: #1a1a2e !important; }
+        .pill-CTA { border-color: var(--cta); }
+        .pill-CTA.activo, .pill-CTA.tiene-contenido { background: var(--cta); color: #1a1a2e !important; }
+        .pill-Ingles { border-color: var(--ingles); }
+        .pill-Ingles.activo, .pill-Ingles.tiene-contenido { background: var(--ingles); color: #1a1a2e !important; }
+        .pill-Historia { border-color: var(--historia); }
+        .pill-Historia.activo, .pill-Historia.tiene-contenido { background: var(--historia); color: #1a1a2e !important; }
+        .pill-Quimica { border-color: var(--quimica); }
+        .pill-Quimica.activo, .pill-Quimica.tiene-contenido { background: var(--quimica); }
+        .pill-E-Fisica { border-color: var(--efisica); }
+        .pill-E-Fisica.activo, .pill-E-Fisica.tiene-contenido { background: var(--efisica); }
+
+        /* ─── Container ─── */
         .container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
             padding: 1rem;
         }
 
-        /* Filtros */
-        .filtros {
-            display: flex;
-            gap: 0.5rem;
-            overflow-x: auto;
-            padding: 0.5rem 0 1rem;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .filtro-btn {
-            background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .filtro-btn:hover, .filtro-btn.activo {
-            background: #667eea;
-            color: white;
-        }
-
-        /* Cards de clases */
+        /* ─── Cards ─── */
         .clase-card {
-            background: white;
+            background: #1a1a2e;
             border-radius: 12px;
-            padding: 1.5rem;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #2a2a3e;
             transition: transform 0.2s;
         }
 
         .clase-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transform: translateY(-1px);
         }
 
-        .clase-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        .card-accent {
+            height: 4px;
+        }
+
+        .card-body {
+            padding: 1.2rem;
+        }
+
+        .card-materia-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.6rem;
+        }
+
+        .card-titulo {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .card-resumen {
+            color: #999;
+            font-size: 0.88rem;
+            line-height: 1.6;
             margin-bottom: 0.8rem;
         }
 
-        .clase-materia {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
+        .btn-expandir {
+            background: #2a2a3e;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.82rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: center;
         }
 
-        .clase-fecha {
-            color: #888;
-            font-size: 0.8rem;
-        }
+        .btn-expandir:hover { background: #3a3a4e; color: white; }
 
-        .clase-titulo {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #1a1a2e;
-        }
-
-        .clase-resumen {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-
-        .clase-contenido {
+        .card-contenido {
             display: none;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
-            line-height: 1.7;
-            font-size: 0.95rem;
+            padding: 1rem 0 0;
+            margin-top: 1rem;
+            border-top: 1px solid #2a2a3e;
+            line-height: 1.8;
+            font-size: 0.92rem;
+            color: #ccc;
         }
 
-        .clase-contenido.visible { display: block; }
+        .card-contenido.visible { display: block; }
 
-        .clase-contenido h2 { font-size: 1.1rem; margin: 1rem 0 0.5rem; color: #333; }
-        .clase-contenido h3 { font-size: 1rem; margin: 0.8rem 0 0.4rem; color: #444; }
-        .clase-contenido ul, .clase-contenido ol { padding-left: 1.5rem; margin: 0.5rem 0; }
-        .clase-contenido li { margin: 0.3rem 0; }
-        .clase-contenido p { margin: 0.5rem 0; }
-        .clase-contenido strong { color: #667eea; }
-        .clase-contenido code {
-            background: #f5f5f5;
+        .card-contenido h2 { font-size: 1.05rem; margin: 1.2rem 0 0.5rem; color: white; }
+        .card-contenido h3 { font-size: 0.95rem; margin: 1rem 0 0.4rem; color: #ddd; }
+        .card-contenido ul, .card-contenido ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+        .card-contenido li { margin: 0.3rem 0; }
+        .card-contenido p { margin: 0.5rem 0; }
+        .card-contenido strong { color: #fff; }
+        .card-contenido code {
+            background: #2a2a3e;
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
-            font-size: 0.9em;
+            font-size: 0.88em;
+            color: #e0e0e0;
         }
 
-        .btn-ver {
-            background: none;
-            border: none;
-            color: #667eea;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 0;
-        }
-
-        .btn-ver:hover { text-decoration: underline; }
-
-        /* Estado vacio */
+        /* ─── Estado vacio ─── */
         .vacio {
             text-align: center;
             padding: 3rem 1rem;
-            color: #888;
+            color: #555;
         }
 
-        .vacio-icono { font-size: 3rem; margin-bottom: 1rem; }
-        .vacio h2 { color: #555; margin-bottom: 0.5rem; }
+        .vacio-icono {
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .vacio h2 {
+            color: #777;
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .vacio p { font-size: 0.85rem; color: #555; }
 
         .instrucciones {
-            background: white;
+            background: #1a1a2e;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.2rem;
             margin-top: 1rem;
             text-align: left;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            border: 1px solid #2a2a3e;
         }
 
-        .instrucciones h3 { margin-bottom: 0.8rem; color: #333; }
+        .instrucciones h3 { margin-bottom: 0.8rem; color: #aaa; font-size: 0.9rem; }
         .instrucciones ol { padding-left: 1.5rem; }
-        .instrucciones li { margin: 0.5rem 0; color: #555; line-height: 1.5; }
+        .instrucciones li { margin: 0.5rem 0; color: #777; line-height: 1.5; font-size: 0.85rem; }
 
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #888;
+        /* ─── Loading ─── */
+        .loading { text-align: center; padding: 2rem; color: #555; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #eee;
-            border-top: 3px solid #667eea;
+        .loading-dots span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            background: #667eea;
+            margin: 0 3px;
+            animation: pulse 1.4s infinite;
         }
 
-        /* Responsive */
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* ─── Ver todas las materias ─── */
+        .btn-ver-todo {
+            display: block;
+            margin: 0 auto 1rem;
+            background: transparent;
+            border: 1px solid #333;
+            color: #777;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-ver-todo:hover { border-color: #667eea; color: #667eea; }
+
+        /* ─── Responsive ─── */
         @media (max-width: 600px) {
             .container { padding: 0.75rem; }
-            .clase-card { padding: 1rem; }
-            .clase-titulo { font-size: 1.05rem; }
+            .card-body { padding: 1rem; }
+            .fecha-actual { font-size: 1.1rem; }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Clases del Salon</h1>
-        <p>Fotos del cuaderno y pizarra convertidas en apuntes digitales</p>
+        <div class="app-title">Clases del Salon</div>
+        <div class="fecha-nav">
+            <button class="fecha-btn" onclick="cambiarFecha(-1)" aria-label="Dia anterior">&larr;</button>
+            <div>
+                <span class="fecha-actual" id="fechaDisplay"></span>
+                <span class="fecha-hoy-badge" id="hoyBadge" style="display:none">HOY</span>
+            </div>
+            <button class="fecha-btn" onclick="cambiarFecha(1)" aria-label="Dia siguiente">&rarr;</button>
+        </div>
+        <div class="materias" id="materias"></div>
     </header>
 
     <div class="container">
-        <div class="filtros" id="filtros"></div>
+        <button class="btn-ver-todo" id="btnVerTodo" style="display:none" onclick="verTodo()">Ver todas las materias</button>
         <div id="clases">
             <div class="loading">
-                <div class="spinner"></div>
-                Cargando clases...
+                <div class="loading-dots">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        const COLORES = {
+            'Lenguaje': '#FF6B6B',
+            'Matematicas': '#4ECDC4',
+            'CTA': '#45B7D1',
+            'Ingles': '#96CEB4',
+            'Historia': '#DFB800',
+            'Quimica': '#A29BFE',
+            'E. Fisica': '#FD79A8',
+        };
+
+        function pillClass(m) {
+            return 'pill-' + m.replace(/[.\s]/g, '-');
+        }
+
+        let fechaActual = new Date();
         let materiaActual = null;
+        let materiasConContenido = new Set();
+
+        function fechaStr(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dd}`;
+        }
+
+        function fechaDisplay(d) {
+            const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            let texto = d.toLocaleDateString('es-MX', opciones);
+            return texto.charAt(0).toUpperCase() + texto.slice(1);
+        }
+
+        function esHoy(d) {
+            const hoy = new Date();
+            return d.getDate() === hoy.getDate() && d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear();
+        }
+
+        function cambiarFecha(delta) {
+            fechaActual.setDate(fechaActual.getDate() + delta);
+            materiaActual = null;
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            document.getElementById('fechaDisplay').textContent = fechaDisplay(fechaActual);
+            document.getElementById('hoyBadge').style.display = esHoy(fechaActual) ? 'inline-block' : 'none';
+            cargarClases();
+        }
 
         // Markdown basico a HTML
         function mdToHtml(md) {
             if (!md) return '';
-            return md
+            let html = md
                 .replace(/^### (.+)$/gm, '<h3>$1</h3>')
                 .replace(/^## (.+)$/gm, '<h2>$1</h2>')
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
                 .replace(/`(.+?)`/g, '<code>$1</code>')
                 .replace(/^- (.+)$/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>');
-        }
-
-        function formatFecha(f) {
-            if (!f) return '';
-            const d = new Date(f + 'T12:00:00');
-            return d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+            // Envolver listas
+            html = html.replace(/(<li>.*?<\/li>(?:<br>)?)+/gs, m => '<ul>' + m.replace(/<br>/g, '') + '</ul>');
+            return '<p>' + html + '</p>';
         }
 
         function toggleContenido(id) {
@@ -241,28 +413,76 @@
             const btn = document.getElementById('btn-' + id);
             if (el.classList.contains('visible')) {
                 el.classList.remove('visible');
-                btn.textContent = 'Ver contenido completo';
+                btn.textContent = 'Ver apuntes completos';
             } else {
                 el.classList.add('visible');
-                btn.textContent = 'Ocultar contenido';
+                btn.textContent = 'Ocultar apuntes';
             }
+        }
+
+        function renderMaterias(materias, clasesDelDia) {
+            materiasConContenido = new Set(clasesDelDia.map(c => c.materia));
+            const container = document.getElementById('materias');
+
+            container.innerHTML = materias.map(m => {
+                const tiene = materiasConContenido.has(m);
+                const activo = materiaActual === m;
+                const clases = [
+                    'materia-pill',
+                    pillClass(m),
+                    tiene ? 'tiene-contenido' : '',
+                    activo ? 'activo' : '',
+                ].filter(Boolean).join(' ');
+                return `<button class="${clases}" onclick="filtrarMateria('${m}')">${m}</button>`;
+            }).join('');
+        }
+
+        function filtrarMateria(m) {
+            materiaActual = (materiaActual === m) ? null : m;
+            document.getElementById('btnVerTodo').style.display = materiaActual ? 'block' : 'none';
+            renderPills();
+            renderClasesFiltradas();
+        }
+
+        function verTodo() {
+            materiaActual = null;
+            document.getElementById('btnVerTodo').style.display = 'none';
+            renderPills();
+            renderClasesFiltradas();
+        }
+
+        function renderPills() {
+            document.querySelectorAll('.materia-pill').forEach(btn => {
+                const m = btn.textContent;
+                btn.classList.toggle('activo', materiaActual === m);
+            });
+        }
+
+        let clasesCache = [];
+
+        function renderClasesFiltradas() {
+            let filtradas = clasesCache;
+            if (materiaActual) {
+                filtradas = clasesCache.filter(c => c.materia === materiaActual);
+            }
+            renderClases(filtradas);
         }
 
         function renderClases(clases) {
             const container = document.getElementById('clases');
 
-            if (clases.length === 0) {
+            if (clases.length === 0 && !materiaActual) {
                 container.innerHTML = `
                     <div class="vacio">
-                        <div class="vacio-icono">📚</div>
-                        <h2>Aun no hay clases</h2>
-                        <p>Envia una foto del cuaderno o pizarra al bot de Telegram</p>
+                        <div class="vacio-icono">&#128218;</div>
+                        <h2>No hay apuntes para este dia</h2>
+                        <p>Envia fotos del cuaderno o pizarra al bot de Telegram</p>
                         <div class="instrucciones">
-                            <h3>Como funciona:</h3>
+                            <h3>Como agregar una clase:</h3>
                             <ol>
-                                <li>Abre el bot de Telegram</li>
-                                <li>Toma una foto del cuaderno o pizarra</li>
-                                <li>Enviala al bot</li>
+                                <li>Toma foto(s) del cuaderno o pizarra</li>
+                                <li>Envialas al bot de Telegram</li>
+                                <li>Selecciona la materia en los botones</li>
                                 <li>La IA analiza y organiza el contenido</li>
                                 <li>Aparece aqui automaticamente</li>
                             </ol>
@@ -271,64 +491,59 @@
                 return;
             }
 
-            container.innerHTML = clases.map(c => `
-                <div class="clase-card">
-                    <div class="clase-header">
-                        <span class="clase-materia">${c.materia}</span>
-                        <span class="clase-fecha">${formatFecha(c.fecha)}</span>
-                    </div>
-                    <div class="clase-titulo">${c.titulo}</div>
-                    <div class="clase-resumen">${c.resumen || ''}</div>
-                    <button class="btn-ver" id="btn-${c.id}" onclick="toggleContenido(${c.id})">
-                        Ver contenido completo
-                    </button>
-                    <div class="clase-contenido" id="cont-${c.id}">
-                        ${mdToHtml(c.contenido)}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function cargarMaterias() {
-            const resp = await fetch('/api/materias');
-            const materias = await resp.json();
-            const container = document.getElementById('filtros');
-
-            if (materias.length === 0) {
-                container.innerHTML = '';
+            if (clases.length === 0 && materiaActual) {
+                const color = COLORES[materiaActual] || '#667eea';
+                container.innerHTML = `
+                    <div class="vacio">
+                        <div class="vacio-icono">&#128196;</div>
+                        <h2>No hay apuntes de ${materiaActual}</h2>
+                        <p>Envia fotos de esta clase al bot de Telegram</p>
+                    </div>`;
                 return;
             }
 
-            let html = '<button class="filtro-btn activo" onclick="filtrar(null, this)">Todas</button>';
-            materias.forEach(m => {
-                html += `<button class="filtro-btn" onclick="filtrar('${m}', this)">${m}</button>`;
-            });
-            container.innerHTML = html;
-        }
-
-        async function filtrar(materia, btn) {
-            materiaActual = materia;
-            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
-            if (btn) btn.classList.add('activo');
-            await cargarClases();
+            container.innerHTML = clases.map(c => {
+                const color = COLORES[c.materia] || '#667eea';
+                return `
+                <div class="clase-card">
+                    <div class="card-accent" style="background: ${color}"></div>
+                    <div class="card-body">
+                        <span class="card-materia-tag" style="background: ${color}22; color: ${color}">${c.materia}</span>
+                        <div class="card-titulo">${c.titulo}</div>
+                        <div class="card-resumen">${c.resumen || ''}</div>
+                        <button class="btn-expandir" id="btn-${c.id}" onclick="toggleContenido(${c.id})">
+                            Ver apuntes completos
+                        </button>
+                        <div class="card-contenido" id="cont-${c.id}">
+                            ${mdToHtml(c.contenido)}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         async function cargarClases() {
-            const url = materiaActual ? `/api/clases?materia=${encodeURIComponent(materiaActual)}` : '/api/clases';
-            const resp = await fetch(url);
-            const clases = await resp.json();
-            renderClases(clases);
+            try {
+                const fecha = fechaStr(fechaActual);
+                const [respMaterias, respClases] = await Promise.all([
+                    fetch('/api/materias'),
+                    fetch(`/api/clases?fecha=${fecha}`),
+                ]);
+                const materias = await respMaterias.json();
+                clasesCache = await respClases.json();
+
+                renderMaterias(materias, clasesCache);
+                renderClasesFiltradas();
+            } catch (e) {
+                console.error('Error cargando:', e);
+            }
         }
 
-        // Cargar al inicio
-        cargarMaterias();
-        cargarClases();
+        // Inicializar
+        actualizarUI();
 
-        // Auto-refrescar cada 30 segundos
-        setInterval(() => {
-            cargarMaterias();
-            cargarClases();
-        }, 30000);
+        // Auto-refresh cada 2 minutos
+        setInterval(cargarClases, 120000);
     </script>
 </body>
 </html>
