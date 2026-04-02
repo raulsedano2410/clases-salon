@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from datetime import datetime, timezone, timedelta
 
@@ -31,11 +32,19 @@ def init_db():
             titulo TEXT NOT NULL,
             contenido TEXT NOT NULL,
             resumen TEXT,
+            diagramas TEXT,
             fecha TEXT NOT NULL,
             imagen_url TEXT,
             creado_en TIMESTAMP NOT NULL DEFAULT NOW(),
             actualizado_en TIMESTAMP NOT NULL DEFAULT NOW()
         )
+    """)
+    # Agregar columna diagramas si no existe (tabla ya creada)
+    cur.execute("""
+        DO $$ BEGIN
+            ALTER TABLE clases ADD COLUMN IF NOT EXISTS diagramas TEXT;
+        EXCEPTION WHEN others THEN NULL;
+        END $$;
     """)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS pending_photos (
@@ -116,97 +125,91 @@ def obtener_clase_por_materia_fecha(materia, fecha):
     return None
 
 
-def guardar_clase(materia, titulo, contenido, resumen, fecha=None, imagen_url=None):
+def guardar_clase(materia, titulo, contenido, resumen, diagramas=None, fecha=None, imagen_url=None):
     conn = get_db()
     cur = conn.cursor()
     if not fecha:
         fecha = datetime.now(PERU_TZ).strftime("%Y-%m-%d")
+    diagramas_json = json.dumps(diagramas or [])
     cur.execute(
-        "INSERT INTO clases (materia, titulo, contenido, resumen, fecha, imagen_url) VALUES (%s, %s, %s, %s, %s, %s)",
-        (materia, titulo, contenido, resumen, fecha, imagen_url),
+        "INSERT INTO clases (materia, titulo, contenido, resumen, diagramas, fecha, imagen_url) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (materia, titulo, contenido, resumen, diagramas_json, fecha, imagen_url),
     )
     conn.commit()
     cur.close()
     conn.close()
 
 
-def actualizar_clase(clase_id, titulo, contenido, resumen):
+def actualizar_clase(clase_id, titulo, contenido, resumen, diagramas=None):
     conn = get_db()
     cur = conn.cursor()
+    diagramas_json = json.dumps(diagramas or [])
     cur.execute(
-        "UPDATE clases SET titulo = %s, contenido = %s, resumen = %s, actualizado_en = NOW() WHERE id = %s",
-        (titulo, contenido, resumen, clase_id),
+        "UPDATE clases SET titulo = %s, contenido = %s, resumen = %s, diagramas = %s, actualizado_en = NOW() WHERE id = %s",
+        (titulo, contenido, resumen, diagramas_json, clase_id),
     )
     conn.commit()
     cur.close()
     conn.close()
+
+
+_COLS_CLASES = "id, materia, titulo, contenido, resumen, diagramas, fecha, imagen_url, creado_en"
+
+
+def _procesar_filas(cur):
+    columns = [desc[0] for desc in cur.description]
+    rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+    for r in rows:
+        if r.get("creado_en"):
+            r["creado_en"] = str(r["creado_en"])
+        # Parsear diagramas de JSON string a lista
+        if r.get("diagramas"):
+            try:
+                r["diagramas"] = json.loads(r["diagramas"])
+            except (json.JSONDecodeError, TypeError):
+                r["diagramas"] = []
+        else:
+            r["diagramas"] = []
+    return rows
 
 
 def obtener_clases(limit=50):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, materia, titulo, contenido, resumen, fecha, imagen_url, creado_en FROM clases ORDER BY fecha DESC, id DESC LIMIT %s",
-        (limit,),
-    )
-    columns = [desc[0] for desc in cur.description]
-    rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+    cur.execute(f"SELECT {_COLS_CLASES} FROM clases ORDER BY fecha DESC, id DESC LIMIT %s", (limit,))
+    rows = _procesar_filas(cur)
     cur.close()
     conn.close()
-    for r in rows:
-        if r.get("creado_en"):
-            r["creado_en"] = str(r["creado_en"])
     return rows
 
 
 def obtener_clases_por_fecha(fecha):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, materia, titulo, contenido, resumen, fecha, imagen_url, creado_en FROM clases WHERE fecha = %s ORDER BY materia",
-        (fecha,),
-    )
-    columns = [desc[0] for desc in cur.description]
-    rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+    cur.execute(f"SELECT {_COLS_CLASES} FROM clases WHERE fecha = %s ORDER BY materia", (fecha,))
+    rows = _procesar_filas(cur)
     cur.close()
     conn.close()
-    for r in rows:
-        if r.get("creado_en"):
-            r["creado_en"] = str(r["creado_en"])
     return rows
 
 
 def obtener_clases_por_materia_fecha(materia, fecha):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, materia, titulo, contenido, resumen, fecha, imagen_url, creado_en FROM clases WHERE materia = %s AND fecha = %s ORDER BY id DESC",
-        (materia, fecha),
-    )
-    columns = [desc[0] for desc in cur.description]
-    rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+    cur.execute(f"SELECT {_COLS_CLASES} FROM clases WHERE materia = %s AND fecha = %s ORDER BY id DESC", (materia, fecha))
+    rows = _procesar_filas(cur)
     cur.close()
     conn.close()
-    for r in rows:
-        if r.get("creado_en"):
-            r["creado_en"] = str(r["creado_en"])
     return rows
 
 
 def obtener_clases_por_materia(materia):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, materia, titulo, contenido, resumen, fecha, imagen_url, creado_en FROM clases WHERE materia = %s ORDER BY fecha DESC, id DESC",
-        (materia,),
-    )
-    columns = [desc[0] for desc in cur.description]
-    rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+    cur.execute(f"SELECT {_COLS_CLASES} FROM clases WHERE materia = %s ORDER BY fecha DESC, id DESC", (materia,))
+    rows = _procesar_filas(cur)
     cur.close()
     conn.close()
-    for r in rows:
-        if r.get("creado_en"):
-            r["creado_en"] = str(r["creado_en"])
     return rows
 
 

@@ -15,20 +15,61 @@ HF_TOKEN = os.environ.get("HF_TOKEN")
 if not GROQ_API_KEY and not GEMINI_API_KEY and not HF_TOKEN:
     raise RuntimeError("Necesitas GROQ_API_KEY, GEMINI_API_KEY o HF_TOKEN en las variables de entorno")
 
-PROMPT_ANALIZAR = """Eres un asistente escolar. Analiza esta foto de un cuaderno o pizarra de clase.
+PROMPT_ANALIZAR = """Eres un asistente escolar experto. Analiza esta foto de un cuaderno o pizarra de clase.
 
 Extrae la informacion y devuelve un JSON con este formato exacto:
 {
   "titulo": "tema principal de la clase",
-  "contenido": "todo el contenido de la clase transcrito y organizado con formato markdown (usa ## para subtitulos, - para listas, **negrita** para conceptos clave, etc.)",
-  "resumen": "resumen de 2-3 oraciones de lo que trata la clase"
+  "contenido": "todo el contenido transcrito y organizado con formato markdown",
+  "resumen": "resumen de 2-3 oraciones",
+  "diagramas": ["codigo mermaid del diagrama 1", "codigo mermaid del diagrama 2"]
 }
 
+REGLAS PARA EL CONTENIDO:
+- Transcribe TODO el texto visible, no resumas
+- Usa markdown: ## subtitulos, - listas, **negrita** para conceptos clave
+- Si hay formulas matematicas, escribelas con formato claro
+
+REGLAS PARA DIAGRAMAS (campo "diagramas"):
+Si la imagen contiene diagramas visuales (lineas de tiempo, mapas conceptuales, diagramas de flujo, cuadros sinopticos, organigramas, tablas comparativas), genera codigo Mermaid que los reproduzca.
+
+Tipos de Mermaid segun el diagrama:
+- Linea de tiempo → usa "timeline"
+- Mapa conceptual / mapa mental → usa "mindmap"
+- Diagrama de flujo / proceso → usa "flowchart LR" o "flowchart TD"
+- Cuadro sinoptico → usa "mindmap"
+- Organigrama / jerarquia → usa "flowchart TD"
+- Ciclo / proceso circular → usa "flowchart LR" con conexiones circulares
+
+Ejemplo de timeline:
+timeline
+    title Historia del Peru
+    Periodo Autoctono : Cultura Chavin
+                      : Imperio Wari
+    Periodo Colonial : 1532 Francisco Pizarro
+                     : 1542 Virreinato
+
+Ejemplo de mindmap:
+mindmap
+  root((Tema Central))
+    Subtema 1
+      Detalle A
+      Detalle B
+    Subtema 2
+      Detalle C
+
+Ejemplo de flowchart:
+flowchart TD
+    A[Inicio] --> B[Paso 1]
+    B --> C{Decision}
+    C -->|Si| D[Resultado A]
+    C -->|No| E[Resultado B]
+
 IMPORTANTE:
-- Transcribe TODO el texto visible, no resumas el contenido
-- Organiza el contenido de forma clara con markdown
-- Si hay diagramas o dibujos, describelos entre [corchetes]
-- Si hay formulas matematicas, usalas con formato claro
+- Si NO hay diagramas en la imagen, pon "diagramas": []
+- Cada diagrama es un string separado en el array
+- El codigo Mermaid NO debe tener comillas invertidas (```)
+- Incluye TODA la informacion del diagrama original, no simplifiques
 - Responde SOLO con el JSON, sin texto adicional ni bloques de codigo
 """
 

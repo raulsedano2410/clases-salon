@@ -140,12 +140,15 @@ def _manejar_callback(callback):
             titulo = resultados[0]["titulo"]
             contenido = resultados[0]["contenido"]
             resumen = resultados[0].get("resumen", "")
+            diagramas = resultados[0].get("diagramas", [])
         else:
             # Fusionar progresivamente
             contenido_acumulado = resultados[0]["contenido"]
+            diagramas = resultados[0].get("diagramas", [])
             for r in resultados[1:]:
                 merged = fusionar_contenidos(contenido_acumulado, r["contenido"])
                 contenido_acumulado = merged["contenido"]
+                diagramas.extend(r.get("diagramas", []))
             titulo = merged.get("titulo", resultados[0]["titulo"])
             contenido = contenido_acumulado
             resumen = merged.get("resumen", resultados[0].get("resumen", ""))
@@ -161,10 +164,11 @@ def _manejar_callback(callback):
                 merged.get("titulo", titulo),
                 merged["contenido"],
                 merged.get("resumen", resumen),
+                diagramas,
             )
             accion = "actualizada"
         else:
-            guardar_clase(materia=materia, titulo=titulo, contenido=contenido, resumen=resumen)
+            guardar_clase(materia=materia, titulo=titulo, contenido=contenido, resumen=resumen, diagramas=diagramas)
             accion = "guardada"
 
         # Limpiar fotos pendientes

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clases del Salon</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -309,6 +310,29 @@
 
         .btn-ver-todo:hover { border-color: #667eea; color: #667eea; }
 
+        /* ─── Diagramas Mermaid ─── */
+        .diagrama-container {
+            background: #12121e;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #2a2a3e;
+        }
+
+        .diagrama-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .diagrama-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
         /* ─── Responsive ─── */
         @media (max-width: 600px) {
             .container { padding: 0.75rem; }
@@ -343,6 +367,43 @@
     </div>
 
     <script>
+        // Inicializar Mermaid con tema oscuro
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                background: '#12121e',
+                primaryColor: '#667eea',
+                primaryTextColor: '#e0e0e0',
+                primaryBorderColor: '#4a4a6a',
+                lineColor: '#667eea',
+                secondaryColor: '#764ba2',
+                tertiaryColor: '#2a2a3e',
+            },
+            flowchart: { curve: 'basis' },
+            mindmap: { padding: 20 },
+        });
+
+        let mermaidCounter = 0;
+
+        async function renderMermaidDiagrams() {
+            const containers = document.querySelectorAll('.mermaid-pending');
+            for (const el of containers) {
+                const code = el.getAttribute('data-mermaid');
+                const id = 'mermaid-' + (mermaidCounter++);
+                try {
+                    const { svg } = await mermaid.render(id, code);
+                    el.innerHTML = svg;
+                    el.classList.remove('mermaid-pending');
+                    el.classList.add('mermaid-rendered');
+                } catch (e) {
+                    console.warn('Mermaid render error:', e);
+                    el.innerHTML = '<pre style="color:#666;font-size:0.8rem;">Diagrama no disponible</pre>';
+                }
+            }
+        }
+
         const COLORES = {
             'Lenguaje': '#FF6B6B',
             'Matematicas': '#4ECDC4',
@@ -511,12 +572,27 @@
 
             container.innerHTML = clases.map(c => {
                 const color = COLORES[c.materia] || '#667eea';
+                // Renderizar diagramas si existen
+                let diagramasHtml = '';
+                const diagramas = c.diagramas || [];
+                if (diagramas.length > 0) {
+                    diagramasHtml = diagramas.map((code, i) => `
+                        <div class="diagrama-container">
+                            <div class="diagrama-label">Diagrama ${diagramas.length > 1 ? (i + 1) : ''}</div>
+                            <div class="mermaid-pending" data-mermaid="${code.replace(/"/g, '&quot;')}"">
+                                <div class="loading-dots"><span></span><span></span><span></span></div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
                 return `
                 <div class="clase-card">
                     <div class="card-accent" style="background: ${color}"></div>
                     <div class="card-body">
                         <span class="card-materia-tag" style="background: ${color}22; color: ${color}">${c.materia}</span>
                         <div class="card-titulo">${c.titulo}</div>
+                        ${diagramasHtml}
                         <div class="card-resumen">${c.resumen || ''}</div>
                         <button class="btn-expandir" id="btn-${c.id}" onclick="toggleContenido(${c.id})">
                             Ver apuntes completos
@@ -527,6 +603,9 @@
                     </div>
                 </div>`;
             }).join('');
+
+            // Renderizar diagramas Mermaid despues de insertar el HTML
+            renderMermaidDiagrams();
         }
 
         async function cargarClases() {
