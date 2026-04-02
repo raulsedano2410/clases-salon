@@ -357,7 +357,14 @@
             return 'pill-' + m.replace(/[.\s]/g, '-');
         }
 
-        let fechaActual = new Date();
+        // Hora de Peru (UTC-5)
+        function ahoraEnPeru() {
+            const now = new Date();
+            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+            return new Date(utc - 5 * 3600000);
+        }
+
+        let fechaActual = ahoraEnPeru();
         let materiaActual = null;
         let materiasConContenido = new Set();
 
@@ -375,7 +382,7 @@
         }
 
         function esHoy(d) {
-            const hoy = new Date();
+            const hoy = ahoraEnPeru();
             return d.getDate() === hoy.getDate() && d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear();
         }
 

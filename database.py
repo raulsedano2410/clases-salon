@@ -1,6 +1,8 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+PERU_TZ = timezone(timedelta(hours=-5))
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +120,7 @@ def guardar_clase(materia, titulo, contenido, resumen, fecha=None, imagen_url=No
     conn = get_db()
     cur = conn.cursor()
     if not fecha:
-        fecha = datetime.now().strftime("%Y-%m-%d")
+        fecha = datetime.now(PERU_TZ).strftime("%Y-%m-%d")
     cur.execute(
         "INSERT INTO clases (materia, titulo, contenido, resumen, fecha, imagen_url) VALUES (%s, %s, %s, %s, %s, %s)",
         (materia, titulo, contenido, resumen, fecha, imagen_url),

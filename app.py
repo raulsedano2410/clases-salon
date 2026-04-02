@@ -3,7 +3,10 @@ import base64
 import logging
 import json
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# Zona horaria de Peru (UTC-5)
+PERU_TZ = timezone(timedelta(hours=-5))
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
@@ -148,7 +151,7 @@ def _manejar_callback(callback):
             resumen = merged.get("resumen", resultados[0].get("resumen", ""))
 
         # Verificar si ya existe clase para esta materia+hoy → merge
-        fecha_hoy = datetime.now().strftime("%Y-%m-%d")
+        fecha_hoy = datetime.now(PERU_TZ).strftime("%Y-%m-%d")
         clase_existente = obtener_clase_por_materia_fecha(materia, fecha_hoy)
 
         if clase_existente:
